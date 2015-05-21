@@ -45,11 +45,12 @@
                    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1,
+                   1, 0, 0, 0, 0, 0, 0, 9, 9, 0, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
                    1, 9, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      spriteToMap = [],
       WIDTH = 20,
       HEIGHT = 12,
       mapSprite = [];
@@ -67,17 +68,61 @@
           mapSprite[iy].anchor.x = 0.5;
           mapSprite[iy].anchor.y = 0.5;
           stage.addChild(mapSprite[iy]);
+          spriteToMap[ix] = iy; //Store the mapSprite index number in a morror array for reference
           iy += 1;
         }
       }
-      //window.console.log("mapSprite: " + mapSprite.length);
-      //window.console.log("mapData: " + mapData.length);
-      //window.console.log("iy: " + iy);
     };
-    Map.prototype.spin = function (timeElapsed) {
-      var ix = 0;
-      for (ix = 0; ix < mapSprite.length; ix += 1) {
-        mapSprite[ix].rotation += (timeElapsed * 0.001 * (ix % 5));
+    Map.prototype.moveTile = function (x, y, timeElapsed, speed, direction, isMoving) {
+      var spriteIx,
+        playerIx;
+      spriteIx = spriteToMap[(x - 1) + ((y - 1) * WIDTH)];
+      playerIx = ((x - 1) + ((y - 1) * WIDTH));
+      switch (direction) {
+      case 0:
+        if (isMoving === true) {
+          mapSprite[spriteIx].x -= timeElapsed * speed;
+        } else {
+          //adjust the tile grids to reflect the moved tile
+          mapData[playerIx] = 9; //Old position is now blank (with player stood in it)
+          mapData[playerIx - 1] = 0;
+          spriteToMap[playerIx - 1] = spriteIx;
+          mapSprite[spriteIx].x = ((x - 1) * 64) - 32; //Snap tile to grid
+        }
+        break;
+      case 1:
+        if (isMoving === true) {
+          mapSprite[spriteIx].x += timeElapsed * speed;
+        } else {
+          //adjust the tile grids to reflect the moved tile
+          mapData[playerIx] = 9; //Old position is now blank (with player stood in it)
+          mapData[playerIx + 1] = 0;
+          spriteToMap[playerIx + 1] = spriteIx;
+          mapSprite[spriteIx].x = ((x + 1) * 64) - 32; //Snap tile to grid
+        }
+        break;
+      case 2:
+        if (isMoving === true) {
+          mapSprite[spriteIx].y -= timeElapsed * speed;
+        } else {
+          //adjust the tile grids to reflect the moved tile
+          mapData[playerIx] = 9; //Old position is now blank (with player stood in it)
+          mapData[playerIx - WIDTH] = 0;
+          spriteToMap[playerIx - WIDTH] = spriteIx;
+          mapSprite[spriteIx].y = ((y - 1) * 64) - 32; //Snap tile to grid
+        }
+        break;
+      case 3:
+        if (isMoving === true) {
+          mapSprite[spriteIx].y += timeElapsed * speed;
+        } else {
+          //adjust the tile grids to reflect the moved tile
+          mapData[playerIx] = 9; //Old position is now blank (with player stood in it)
+          mapData[playerIx + WIDTH] = 0;
+          spriteToMap[playerIx + WIDTH] = spriteIx;
+          mapSprite[spriteIx].y = ((y + 1) * 64) - 32; //Snap tile to grid
+        }
+        break;
       }
     };
 
@@ -91,6 +136,10 @@
     var isMoving = false,
       direction = 0, //0=left, 1=right, 2=up, 3= down
       speed = 0.08,
+      tile,
+      tileMoveX = 99,
+      tileMoveY = 99,
+      pushing = false,
       playerSprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/yellow.png'));
     playerSprite.anchor.x = 0.5;
     playerSprite.anchor.y = 0.5;
@@ -99,6 +148,22 @@
     playerSprite.x = (playerSprite.gridX * 64) - 32;
     playerSprite.y = (playerSprite.gridY * 64) - 32;
     stage.addChild(playerSprite);
+
+    function moveTile(isMoving, timeElapsed) {
+      //playerSprite.x -= iTimeElapsed * speed;
+      map.moveTile(tileMoveX, tileMoveY, timeElapsed, speed, direction, isMoving);
+      if (isMoving === false) {
+        tileMoveX = 99; //Set global tileMoveX to 99 so that we don't continue to move tile.
+      }
+    } //end moveTile
+
+    Player.prototype.getPos = function (timeElapsed) {
+      return {
+        x: playerSprite.gridX,
+        y: playerSprite.gridY
+      };
+    };
+
     Player.prototype.move = function (timeElapsed) {
       if (isMoving === true) {
         switch (direction) {
@@ -135,31 +200,74 @@
           }
           break;
         }
+        if (tileMoveX !== 99) {
+          moveTile(isMoving, timeElapsed);
+        }
       } else {
         //If not already moving and key is pressed, then start moving.
         //I should really think of a better way to do this...
         if (left === true) {
-          if (map.getTile(playerSprite.gridX - 1, playerSprite.gridY) === 9) {
+          tile = map.getTile(playerSprite.gridX - 1, playerSprite.gridY);
+          if (tile === 9 || tile === 0) {
             direction = 0;
             isMoving = true;
+            if (tile === 0) {
+              if (map.getTile(playerSprite.gridX - 2, playerSprite.gridY) === 9) {
+                //only allow block to push if space after is empty
+                tileMoveX = (playerSprite.gridX - 1);
+                tileMoveY = playerSprite.gridY;
+              } else {
+                isMoving = false;
+              }
+            }
           }
         }
         if (right === true) {
-          if (map.getTile(playerSprite.gridX + 1, playerSprite.gridY) === 9) {
+          tile = map.getTile(playerSprite.gridX + 1, playerSprite.gridY);
+          if (tile === 9 || tile === 0) {
             direction = 1;
             isMoving = true;
+            if (tile === 0) {
+              if (map.getTile(playerSprite.gridX + 2, playerSprite.gridY) === 9) {
+                //only allow block to push if space after is empty
+                tileMoveX = (playerSprite.gridX + 1);
+                tileMoveY = playerSprite.gridY;
+              } else {
+                isMoving = false;
+              }
+            }
           }
         }
         if (up === true) {
-          if (map.getTile(playerSprite.gridX, playerSprite.gridY - 1) === 9) {
+          tile = map.getTile(playerSprite.gridX, playerSprite.gridY - 1);
+          if (tile === 9 || tile === 0) {
             direction = 2;
             isMoving = true;
+            if (tile === 0) {
+              if (map.getTile(playerSprite.gridX, playerSprite.gridY - 2) === 9) {
+                //only allow block to push if space after is empty
+                tileMoveX = playerSprite.gridX;
+                tileMoveY = playerSprite.gridY - 1;
+              } else {
+                isMoving = false;
+              }
+            }
           }
         }
         if (down === true) {
-          if (map.getTile(playerSprite.gridX, playerSprite.gridY + 1) === 9) {
+          tile = map.getTile(playerSprite.gridX, playerSprite.gridY + 1);
+          if (tile === 9 || tile === 0) {
             direction = 3;
             isMoving = true;
+            if (tile === 0) {
+              if (map.getTile(playerSprite.gridX, playerSprite.gridY + 2) === 9) {
+                //only allow block to push if space after is empty
+                tileMoveX = playerSprite.gridX;
+                tileMoveY = playerSprite.gridY + 1;
+              } else {
+                isMoving = false;
+              }
+            }
           }
         }
       }
