@@ -54,16 +54,18 @@
                    1, 0, 0, 0, 0, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 7, 0, 0, 6, 0, 9, 0, 9, 9, 1,
                    1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 7, 5, 5, 5, 0, 9, 0, 9, 9, 1,
-                   1, 9, 9, 9, 9, 9, 9, 9, 4, 4, 7, 0, 0, 0, 0, 0, 0, 9, 9, 1,
+                   1, 9, 9, 9, 8, 9, 9, 9, 4, 4, 7, 0, 0, 0, 0, 0, 0, 9, 9, 1,
                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       spriteToMap = [],
       WIDTH = 20,
       HEIGHT = 12,
-      mapSprite = [];
+      mapSprite = [],
+      keyCount = 0,
+      keyBounceDir = 0,
+      keyScale = 0.8;
     Map.prototype.init = function () {
       var ix = 0,
-        iy = 0,
-        keyCount = 0;
+        iy = 0;
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
       for (ix = 0; ix < (HEIGHT * WIDTH); ix += 1) {
         if (mapData[ix] !== 9) {
@@ -74,6 +76,7 @@
           mapSprite[iy].gridY = Math.floor(ix / WIDTH);
           mapSprite[iy].anchor.x = 0.5;
           mapSprite[iy].anchor.y = 0.5;
+          mapSprite[iy].tileType = mapData[ix]; //Store teh tile type in with the sprite object
           stage.addChild(mapSprite[iy]);
           spriteToMap[ix] = iy; //Store the mapSprite index number in a morror array for reference
           iy += 1;
@@ -139,6 +142,42 @@
     //Return the content of the tile at location x, y
     Map.prototype.getTile = function (x, y) {
       return mapData[(x - 1) + ((y - 1) * WIDTH)];
+    };
+
+    //Animate keys...
+    Map.prototype.animate = function (timeElapsed) {
+      var ix = 0;
+      if (keyBounceDir === 0) {
+        keyScale -= 0.0003 * timeElapsed;
+        if (keyScale < 0.7) {
+          keyBounceDir = 1;
+        }
+      } else {
+        keyScale += 0.0003 * timeElapsed;
+        if (keyScale > 0.9) {
+          keyBounceDir = 0;
+        }
+      }
+      for (ix = 0; ix < mapSprite.length; ix += 1) {
+        if (mapSprite[ix].tileType === 8) {
+          mapSprite[ix].scale.x = keyScale;
+          mapSprite[ix].scale.y = keyScale;
+        }
+      }
+    };
+
+    Map.prototype.gotKey = function (x, y) {
+      var ix = ((x - 1) + ((y - 1) * WIDTH)),
+        spriteIx = spriteToMap[ix];
+      keyCount -= 1;
+      mapData[ix] = 9;
+      mapSprite[spriteIx].visible = false;
+      window.console.log("Key collected. " + keyCount + " keys left to collect.");
+      if (keyCount === 0) {
+        //All keys collected. Level Complete!
+        //TODO - LEVEL COMPLETE
+        window.console.log("LEVEL COMPLETE!");
+      }
     };
   }
 
@@ -229,6 +268,10 @@
                 isMoving = false;
               }
             }
+            if (tile === 8) {
+              //Collected a key!
+              map.gotKey(playerSprite.gridX - 1, playerSprite.gridY);
+            }
           }
         }
         if (right === true) {
@@ -244,6 +287,10 @@
               } else {
                 isMoving = false;
               }
+            }
+            if (tile === 8) {
+              //Collected a key!
+              map.gotKey(playerSprite.gridX + 1, playerSprite.gridY);
             }
           }
         }
@@ -261,6 +308,10 @@
                 isMoving = false;
               }
             }
+            if (tile === 8) {
+              //Collected a key!
+              map.gotKey(playerSprite.gridX, playerSprite.gridY - 1);
+            }
           }
         }
         if (down === true) {
@@ -276,6 +327,10 @@
               } else {
                 isMoving = false;
               }
+            }
+            if (tile === 8) {
+              //Collected a key!
+              map.gotKey(playerSprite.gridX, playerSprite.gridY + 1);
             }
           }
         }
@@ -360,6 +415,7 @@
 
     stats.begin();
     player.move(timeElapsed);
+    map.animate(timeElapsed);
 
     //sleep(100); //TESTING ONLY - Reduce to 10 TPS
 
