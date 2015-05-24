@@ -31,24 +31,30 @@
       return textures[ix];
     };
     var textures = [];
-    textures.push(PIXI.Texture.fromImage('images/orange.png')); //0 - 
-    textures.push(PIXI.Texture.fromImage('images/purple.png')); //1 - 
-    textures.push(PIXI.Texture.fromImage('images/yellow.png')); //2 - 
+    textures.push(PIXI.Texture.fromImage('images/crate.png')); //0 - Pushable tiles
+    textures.push(PIXI.Texture.fromImage('images/edge.png')); //1 - Fixed Tiles (Used for map edges)
+    textures.push(PIXI.Texture.fromImage('images/static1.png')); //2 - Fixed Tiles
+    textures.push(PIXI.Texture.fromImage('images/static2.png')); //3 - Fixed Tiles
+    textures.push(PIXI.Texture.fromImage('images/left.png')); //4 - Left Only
+    textures.push(PIXI.Texture.fromImage('images/right.png')); //5 - Right Only
+    textures.push(PIXI.Texture.fromImage('images/up.png')); //6 - Up Only
+    textures.push(PIXI.Texture.fromImage('images/down.png')); //7 - Down Only
+    textures.push(PIXI.Texture.fromImage('images/key.png')); //8 - A Key!
   }
 
 
   function Map() {
     var mapData = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 9, 9, 0, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
-                   1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
-                   1, 9, 9, 9, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
+                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 8, 1,
+                   1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 9, 9, 1,
+                   1, 0, 0, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 9, 9, 1,
+                   1, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 1,
+                   1, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 9, 9, 1,
+                   1, 0, 0, 9, 9, 9, 9, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 9, 9, 1,
+                   1, 0, 0, 0, 0, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 0, 9, 9, 1,
+                   1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 7, 0, 0, 6, 0, 9, 0, 9, 9, 1,
+                   1, 0, 0, 0, 0, 0, 0, 9, 0, 0, 7, 5, 5, 5, 0, 9, 0, 9, 9, 1,
+                   1, 9, 9, 9, 9, 9, 9, 9, 4, 4, 7, 0, 0, 0, 0, 0, 0, 9, 9, 1,
                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
       spriteToMap = [],
       WIDTH = 20,
@@ -56,7 +62,8 @@
       mapSprite = [];
     Map.prototype.init = function () {
       var ix = 0,
-        iy = 0;
+        iy = 0,
+        keyCount = 0;
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
       for (ix = 0; ix < (HEIGHT * WIDTH); ix += 1) {
         if (mapData[ix] !== 9) {
@@ -70,6 +77,9 @@
           stage.addChild(mapSprite[iy]);
           spriteToMap[ix] = iy; //Store the mapSprite index number in a morror array for reference
           iy += 1;
+          if (mapData[ix] === 8) {
+            keyCount += 1;
+          }
         }
       }
     };
@@ -140,7 +150,7 @@
       tileMoveX = 99,
       tileMoveY = 99,
       pushing = false,
-      playerSprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/yellow.png'));
+      playerSprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/truck.png'));
     playerSprite.anchor.x = 0.5;
     playerSprite.anchor.y = 0.5;
     playerSprite.gridX = 12;
@@ -150,7 +160,6 @@
     stage.addChild(playerSprite);
 
     function moveTile(isMoving, timeElapsed) {
-      //playerSprite.x -= iTimeElapsed * speed;
       map.moveTile(tileMoveX, tileMoveY, timeElapsed, speed, direction, isMoving);
       if (isMoving === false) {
         tileMoveX = 99; //Set global tileMoveX to 99 so that we don't continue to move tile.
@@ -208,7 +217,7 @@
         //I should really think of a better way to do this...
         if (left === true) {
           tile = map.getTile(playerSprite.gridX - 1, playerSprite.gridY);
-          if (tile === 9 || tile === 0) {
+          if (tile === 9 || tile === 0 || tile === 4 || tile === 8) {
             direction = 0;
             isMoving = true;
             if (tile === 0) {
@@ -224,7 +233,7 @@
         }
         if (right === true) {
           tile = map.getTile(playerSprite.gridX + 1, playerSprite.gridY);
-          if (tile === 9 || tile === 0) {
+          if (tile === 9 || tile === 0 || tile === 5 || tile === 8) {
             direction = 1;
             isMoving = true;
             if (tile === 0) {
@@ -240,7 +249,7 @@
         }
         if (up === true) {
           tile = map.getTile(playerSprite.gridX, playerSprite.gridY - 1);
-          if (tile === 9 || tile === 0) {
+          if (tile === 9 || tile === 0 || tile === 6 || tile === 8) {
             direction = 2;
             isMoving = true;
             if (tile === 0) {
@@ -256,7 +265,7 @@
         }
         if (down === true) {
           tile = map.getTile(playerSprite.gridX, playerSprite.gridY + 1);
-          if (tile === 9 || tile === 0) {
+          if (tile === 9 || tile === 0 || tile === 7 || tile === 8) {
             direction = 3;
             isMoving = true;
             if (tile === 0) {
@@ -271,6 +280,22 @@
           }
         }
       }
+      //Just started moving, so set the truck to face the right direction.
+      //Should improve this to rotate into position rather then just jump to it.
+      switch (direction) {
+      case 0:
+        playerSprite.rotation = 4.7123889804; //270 degrees in radions (degrees x PI / 180)
+        break;
+      case 1:
+        playerSprite.rotation = 1.5707963268; //90 degrees in radions
+        break;
+      case 2:
+        playerSprite.rotation = 0.0000000000; //0 degrees in radions
+        break;
+      case 3:
+        playerSprite.rotation = 3.1415926536; //180 degrees in radions
+        break;
+      } //end switch direction
     };
   }
 
@@ -334,12 +359,9 @@
     timeElapsed = getTimeElapsed();
 
     stats.begin();
-    //map.spin(timeElapsed);  //REPLACE WITH CALL TO ANIMATE - CAN BE FUNCTION IN EACH TILE THEN.
     player.move(timeElapsed);
 
-    //Update any game logic here!
-
-    //sleep(100); //TESTING ONLY
+    //sleep(100); //TESTING ONLY - Reduce to 10 TPS
 
     // render the stage  
     renderer.render(stage);
