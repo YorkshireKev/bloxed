@@ -4,9 +4,10 @@
   "use strict";
 
   var stage, renderer,
-    textures, map, player,
-    left, right, up, down,
+    textures, map, player, startScreen,
+    left, right, up, down, enterPressed, restartPressed,
     timeLast,
+    gameState = 0,
     stats = new Stats();
   stats.setMode(0); // 0: fps, 1: ms
 
@@ -20,11 +21,93 @@
 
   // create an new instance of a pixi
   stage = new PIXI.Container();
+  /*renderer = PIXI.autoDetectRenderer(1366, 768);
+  document.body.appendChild(renderer.view);*/
   renderer = PIXI.autoDetectRenderer(1366, 768);
+  renderer.view.style.position = "absolute";
+  if (window.innerWidth > window.innerHeight) {
+    renderer.view.style.width = Math.floor(window.innerHeight * 1.778645833) + "px";
+    renderer.view.style.height = Math.floor(window.innerHeight) + "px";
+  } else {
+    renderer.view.style.width = Math.floor(window.innerWidth) + "px";
+    renderer.view.style.height = Math.floor(window.innerWidth * 0.562225476) + "px";
+  }
+  renderer.view.style.display = "block";
   document.body.appendChild(renderer.view);
 
   //Add stats counter
   document.body.appendChild(stats.domElement);
+
+  function StartScreen() {
+    var titleText, instrText, startText, copyText;
+    titleText = new PIXI.Text("Bloxed", {
+      font: "bold " + Math.floor(renderer.width / 10) + "px Verdana",
+      fill: "#415df7",
+      align: "center",
+      stroke: "#f7ae0b",
+      strokeThickness: 6
+    });
+    titleText.anchor.x = titleText.anchor.y = 0.5;
+    titleText.position.x = renderer.width / 2;
+    titleText.position.y = titleText.height;
+
+    instrText = new PIXI.Text("Push some blocks about and collect the keys!", {
+      font: "bold " + Math.floor(renderer.width / 40) + "px Verdana",
+      fill: "#082cf0",
+      align: "center",
+      stroke: "#f7ae0b",
+      strokeThickness: 6
+    });
+    instrText.anchor.x = titleText.anchor.y = 0.5;
+    instrText.position.x = renderer.width / 2;
+    instrText.position.y = titleText.height +  (instrText.height * 2);
+
+
+    startText = new PIXI.Text("Press ENTER to Start", {
+      font: "bold " + Math.floor(renderer.width / 20) + "px Verdana",
+      fill: "#ff2700",
+      align: "center",
+      stroke: "#f7ae0b",
+      strokeThickness: 6
+    });
+    startText.anchor.x = titleText.anchor.y = 0.5;
+    startText.position.x = renderer.width / 2;
+    startText.position.y = renderer.height / 1.7;
+
+    copyText = new PIXI.Text("(c)2015 Kev Ellis - Released under the MIT Open Source Licence", {
+      font: "bold " + Math.floor(renderer.width / 40) + "px Verdana",
+      fill: "#a5a4a3",
+      align: "center",
+      stroke: "#4d4940",
+      strokeThickness: 6
+    });
+    copyText.anchor.x = titleText.anchor.y = 0.5;
+    copyText.position.x = renderer.width / 2;
+    copyText.position.y = renderer.height - copyText.height;
+
+
+    StartScreen.prototype.init = function () {
+      //First remove any existing objects from stage
+      while (stage.children[0]) {
+        stage.removeChild(stage.children[0]);
+      }
+      stage.addChild(titleText);
+      stage.addChild(instrText);
+      stage.addChild(startText);
+      stage.addChild(copyText);
+    };
+
+    StartScreen.prototype.animate = function () {
+      if (enterPressed === true) {
+        enterPressed = false;
+        map.init(); //Populate the starter map
+        player.initPlayer(8, 6);
+        gameState = 1; //Start the game!
+      }
+      //Animate the game logo
+    };
+  }
+
 
   function Textures() {
     Textures.prototype.getTexture = function (ix) {
@@ -66,6 +149,10 @@
     Map.prototype.init = function () {
       var ix = 0,
         iy = 0;
+      //First remove any existing objects from stage
+      while (stage.children[0]) {
+        stage.removeChild(stage.children[0]);
+      }
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
       for (ix = 0; ix < (HEIGHT * WIDTH); ix += 1) {
         if (mapData[ix] !== 9) {
@@ -192,11 +279,14 @@
       playerSprite = new PIXI.Sprite(PIXI.Texture.fromImage('images/truck.png'));
     playerSprite.anchor.x = 0.5;
     playerSprite.anchor.y = 0.5;
-    playerSprite.gridX = 8;
-    playerSprite.gridY = 6;
-    playerSprite.x = (playerSprite.gridX * 64) - 32;
-    playerSprite.y = (playerSprite.gridY * 64) - 32;
-    stage.addChild(playerSprite);
+
+    Player.prototype.initPlayer = function (x, y) {
+      playerSprite.gridX = x;
+      playerSprite.gridY = y;
+      playerSprite.x = (playerSprite.gridX * 64) - 32;
+      playerSprite.y = (playerSprite.gridY * 64) - 32;
+      stage.addChild(playerSprite);
+    };
 
     function moveTile(isMoving, timeElapsed) {
       map.moveTile(tileMoveX, tileMoveY, timeElapsed, speed, direction, isMoving);
@@ -373,6 +463,15 @@
       //Key: L - Down
       down = true;
       break;
+    case 13:
+      //Key: Enter/Return
+      enterPressed = true;
+      break;
+    case 82:
+    case 27:
+      //Key: Enter/Return
+      restartPressed = true;
+      break;
     }
   }, false);
   window.addEventListener("keyup", function (event) {
@@ -414,8 +513,23 @@
     timeElapsed = getTimeElapsed();
 
     stats.begin();
-    player.move(timeElapsed);
-    map.animate(timeElapsed);
+    switch (gameState) {
+    case 0: //Start Screen
+      startScreen.animate();
+      break;
+
+    case 1: //Game
+      player.move(timeElapsed);
+      map.animate(timeElapsed);
+      break;
+
+    case 2: //Level Complete
+      break;
+
+    case 3: //All Levels Complete - Game Over
+      break;
+
+    }
 
     //sleep(100); //TESTING ONLY - Reduce to 10 TPS
 
@@ -427,9 +541,11 @@
 
   //MAIN - Program starting point!
   textures = new Textures(); //Load textures
+  startScreen = new StartScreen(); //Set up start screen
   map = new Map(); //Create the map object
-  map.init(); //Populate the starter map
   player = new Player();
+
+  startScreen.init();
   window.requestAnimationFrame(animate);
 
   //FOR TESTING!
