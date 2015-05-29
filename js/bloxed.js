@@ -101,15 +101,14 @@
       stage.addChild(instrText);
       stage.addChild(startText);
       stage.addChild(copyText);
+      zoomIn = true;
+      level = 1;
     };
-    zoomIn = true;
-    level = 1;
 
     StartScreen.prototype.animate = function (timeElapsed) {
       if (enterPressed === true) {
         enterPressed = false;
         map.init(1); //Populate the starter map
-        //player.initPlayer(8, 6);
         gameState = 1; //Start the game!
       }
       //Animate the game logo
@@ -180,25 +179,45 @@
       keyCount,
       keyBounceDir = 0,
       keyScale = 0.8,
+      AllLevelsCompleteText,
+      LevelCompleteText;
 
-      LevelCompleteText = new PIXI.Text("Level Complete!", {
-        font: "bold " + Math.floor(renderer.width / 20) + "px Verdana",
-        fill: "#ff2700",
-        align: "center",
-        stroke: "#f7ae0b",
-        strokeThickness: 6
-      });
+
+    LevelCompleteText = new PIXI.Text("Level Complete!", {
+      font: "bold " + Math.floor(renderer.width / 20) + "px Verdana",
+      fill: "#ff2700",
+      align: "center",
+      stroke: "#f7ae0b",
+      strokeThickness: 6
+    });
     LevelCompleteText.anchor.x = 0.5;
     LevelCompleteText.anchor.y = 0.5;
     LevelCompleteText.position.x = renderer.width / 2;
     LevelCompleteText.position.y = renderer.height / 2;
+
+    AllLevelsCompleteText = new PIXI.Text("Congratulations!\nYou've Completed\nAll of the Levels", {
+      font: "bold " + Math.floor(renderer.width / 30) + "px Verdana",
+      fill: "#f8ea79",
+      align: "center",
+      stroke: "#f7ae0b",
+      strokeThickness: 6
+    });
+    AllLevelsCompleteText.anchor.x = 0.5;
+    AllLevelsCompleteText.anchor.y = 0.5;
+    AllLevelsCompleteText.position.x = renderer.width / 2;
+    AllLevelsCompleteText.position.y = renderer.height / 2;
 
     Map.prototype.init = function (level) {
       var ix = 0,
         iy = 0,
         px,
         py;
-      
+
+      //First remove any existing objects from stage
+      while (stage.children[0]) {
+        stage.removeChild(stage.children[0]);
+      }
+
       //Load the appropriate level into mapData;
       switch (level) {
       case 1:
@@ -213,14 +232,11 @@
         break;
       default:
         //No more levels, so tell player they've completed all of the levels!
-        gameState = 4;
+        gameState = 3;
+        stage.addChild(AllLevelsCompleteText);
         return;
       }
 
-      //First remove any existing objects from stage
-      while (stage.children[0]) {
-        stage.removeChild(stage.children[0]);
-      }
       keyCount = 0;
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
       for (ix = 0; ix < (HEIGHT * WIDTH); ix += 1) {
@@ -335,7 +351,6 @@
         LevelCompleteText.scale.x = 1;
         LevelCompleteText.scale.x = 1;
         stage.addChild(LevelCompleteText);
-        //LevelCompleteText.visibility = true;
       }
     };
 
@@ -344,11 +359,23 @@
       LevelCompleteText.scale.y = LevelCompleteText.scale.x;
       if (LevelCompleteText.scale.x > 3) {
         level += 1;
-        map.init(level);
         gameState = 1;
+        map.init(level);
       }
     };
+
+    Map.prototype.allComplete = function (timeElapsed) {
+      AllLevelsCompleteText.scale.x += timeElapsed * 0.0001;
+      AllLevelsCompleteText.scale.y = AllLevelsCompleteText.scale.x;
+      if (AllLevelsCompleteText.scale.x > 3) {
+        gameState = 0;
+        startScreen.init();
+      }
+    };
+
   }
+
+  //LevelCompleteText.visibility = true;
 
   function Player() {
     var isMoving = false,
@@ -532,18 +559,22 @@
   window.addEventListener("keydown", function (event) {
     switch (event.keyCode) {
     case 90:
+    case 37:
       //Key: Z -  Left
       left = true;
       break;
     case 88:
+    case 39:
       //Key: X - Right
       right = true;
       break;
     case 80:
+    case 38:
       //Key: P - Up
       up = true;
       break;
     case 76:
+    case 40:
       //Key: L - Down
       down = true;
       break;
@@ -563,18 +594,22 @@
   window.addEventListener("keyup", function (event) {
     switch (event.keyCode) {
     case 90:
+    case 37:
       //Key: Z -  Left
       left = false;
       break;
     case 88:
+    case 39:
       //Key: X - Right
       right = false;
       break;
     case 80:
+    case 38:
       //Key: P - Up
       up = false;
       break;
     case 76:
+    case 40:
       //Key: L - Down
       down = false;
       break;
@@ -615,8 +650,8 @@
       break;
 
     case 3: //All Levels Complete - Game Over
+      map.allComplete(timeElapsed);
       break;
-
     }
 
     //sleep(100); //TESTING ONLY - Reduce to 10 TPS
