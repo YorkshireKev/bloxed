@@ -191,8 +191,6 @@
         return;
       }
       mapData = levels[level - 1].slice();
-      //px = 8; //Player x start pos
-      //py = 6; //Player y start pos
 
       keyCount = 0;
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
@@ -209,8 +207,8 @@
           stage.addChild(mapSprite[iy]);
           if (mapData[ix] === 10) {
             //Set player start position
-            px = mapSprite[iy].gridX + 1;
-            py = mapSprite[iy].gridY + 1;
+            px = (mapSprite[iy].gridX + 1);
+            py = (mapSprite[iy].gridY + 1);
             mapData[ix] = 9; //Set player start pos to an empty space
           }
           spriteToMap[ix] = iy; //Store the mapSprite index number in a morror array for reference
