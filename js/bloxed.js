@@ -1,5 +1,5 @@
 /*jslint browser: true*/
-/*global PIXI, io*/
+/*global PIXI, levels*/
 (function () {
   "use strict";
 
@@ -14,6 +14,8 @@
   stage = new PIXI.Container();
   renderer = PIXI.autoDetectRenderer(1280, 768);
   renderer.view.style.position = "absolute";
+  //Scale the canvas to fit on screen without altering the aspect ratio
+  //This seems to be a bit buggy at some resolutions and needs looking at
   if (window.innerWidth > window.innerHeight) {
     renderer.view.style.width = Math.floor(window.innerHeight * 1.666666667) + "px";
     renderer.view.style.height = Math.floor(window.innerHeight) + "px";
@@ -134,31 +136,7 @@
 
 
   function Map() {
-    var level1 = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9,
-                  1, 9, 9, 4, 9, 9, 9, 9, 8, 9, 2, 2, 2, 1, 9, 9, 9, 9, 9, 9,
-                  1, 9, 3, 3, 3, 3, 9, 9, 9, 0, 9, 0, 9, 1, 9, 9, 9, 9, 9, 9,
-                  1, 9, 3, 9, 9, 9, 9, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                  1, 9, 3, 9, 0, 9, 9, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                  1, 9, 3, 9, 9, 0, 9, 9, 9, 9, 2, 9, 2, 1, 9, 9, 9, 9, 9, 9,
-                  1, 1, 1, 9, 0, 9, 0, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                  9, 9, 1, 9, 9, 0, 9, 0, 9, 9, 2, 6, 2, 1, 1, 9, 9, 9, 9, 9,
-                  9, 9, 1, 9, 0, 9, 0, 9, 9, 9, 2, 6, 2, 9, 1, 1, 1, 1, 1, 1,
-                  9, 9, 1, 0, 9, 0, 9, 0, 9, 9, 2, 6, 2, 9, 9, 9, 0, 9, 9, 1,
-                  9, 9, 1, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 9, 1,
-                  9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      level2 = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9,
-                1, 9, 9, 4, 9, 9, 9, 9, 9, 9, 2, 2, 2, 1, 9, 9, 9, 9, 9, 9,
-                1, 9, 3, 3, 3, 3, 9, 9, 9, 0, 9, 0, 9, 1, 9, 9, 9, 9, 9, 9,
-                1, 9, 3, 9, 9, 9, 9, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                1, 9, 3, 9, 0, 9, 9, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                1, 8, 3, 9, 9, 0, 9, 9, 9, 9, 2, 8, 2, 1, 9, 9, 9, 9, 9, 9,
-                1, 1, 1, 9, 0, 9, 0, 9, 9, 9, 2, 6, 2, 1, 9, 9, 9, 9, 9, 9,
-                9, 9, 1, 9, 9, 0, 9, 0, 9, 9, 2, 6, 2, 1, 1, 9, 9, 9, 9, 9,
-                9, 9, 1, 9, 0, 9, 0, 9, 9, 9, 2, 6, 2, 9, 1, 1, 1, 1, 1, 1,
-                9, 9, 1, 0, 9, 0, 9, 0, 9, 9, 2, 6, 2, 9, 9, 9, 0, 9, 8, 1,
-                9, 9, 1, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 0, 9, 9, 9, 9, 1,
-                9, 9, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      mapData = [],
+    var mapData = [],
       spriteToMap = [],
       WIDTH = 20,
       HEIGHT = 12,
@@ -206,23 +184,15 @@
       }
 
       //Load the appropriate level into mapData;
-      switch (level) {
-      case 1:
-        mapData = level1.slice();
-        px = 8; //Player x start pos
-        py = 6; //Player y start pos
-        break;
-      case 2:
-        mapData = level2.slice();
-        px = 8;
-        py = 6;
-        break;
-      default:
+      if (level > levels.length) {
         //No more levels, so tell player they've completed all of the levels!
         gameState = 3;
         stage.addChild(AllLevelsCompleteText);
         return;
       }
+      mapData = levels[level - 1].slice();
+      px = 8; //Player x start pos
+      py = 6; //Player y start pos
 
       keyCount = 0;
       //Loop through mapData and add a sprite for each non-blank (aka no 9) tile.
@@ -361,8 +331,6 @@
     };
 
   }
-
-  //LevelCompleteText.visibility = true;
 
   function Player() {
     var isMoving = false,
