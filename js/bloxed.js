@@ -24,16 +24,17 @@
   stage = new PIXI.Container();
   /*renderer = PIXI.autoDetectRenderer(1366, 768);
   document.body.appendChild(renderer.view);*/
-  renderer = PIXI.autoDetectRenderer(1366, 768);
+  renderer = PIXI.autoDetectRenderer(1280, 768);
   renderer.view.style.position = "absolute";
   if (window.innerWidth > window.innerHeight) {
-    renderer.view.style.width = Math.floor(window.innerHeight * 1.778645833) + "px";
+    renderer.view.style.width = Math.floor(window.innerHeight * 1.666666667) + "px";
     renderer.view.style.height = Math.floor(window.innerHeight) + "px";
   } else {
     renderer.view.style.width = Math.floor(window.innerWidth) + "px";
-    renderer.view.style.height = Math.floor(window.innerWidth * 0.562225476) + "px";
+    renderer.view.style.height = Math.floor(window.innerWidth * 0.600000000) + "px";
   }
   renderer.view.style.display = "block";
+  renderer.view.style.left = Math.floor((window.innerWidth - parseInt(renderer.view.style.width, 10)) / 2) + "px";
   document.body.appendChild(renderer.view);
 
   //Add stats counter
@@ -54,7 +55,8 @@
     titleText.position.y = titleText.height / 1.5;
 
     instrText = new PIXI.Text("How to play:\nPush some blocks about and collect the keys!" +
-      "\nZ - Left, X - Right, P - up and L - down... or just use the cursor Keys.", {
+      "\nMove around by pressing Z, X, P and L... or just use the cursor Keys." +
+      "\nPress R or Escape to Restart the Level.", {
         font: "bold " + Math.floor(renderer.width / 40) + "px Verdana",
         fill: "#082cf0",
         align: "center",
