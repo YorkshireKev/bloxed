@@ -1,29 +1,17 @@
 /*jslint browser: true*/
-/*global Stats, PIXI, io*/
+/*global PIXI, io*/
 (function () {
   "use strict";
 
   var stage, renderer,
     textures, map, player, startScreen,
-    left, right, up, down, enterPressed,
+    left, right, up, down, cheat, enterPressed,
     timeLast,
     gameState = 0,
-    level = 1,
-    stats = new Stats();
-  stats.setMode(0); // 0: fps, 1: ms
-
-  // align top-left
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.left = '0px';
-  stats.domElement.style.top = '0px';
-
-  document.body.appendChild(stats.domElement);
-  // END of stats init code
+    level = 1;
 
   // create an new instance of a pixi
   stage = new PIXI.Container();
-  /*renderer = PIXI.autoDetectRenderer(1366, 768);
-  document.body.appendChild(renderer.view);*/
   renderer = PIXI.autoDetectRenderer(1280, 768);
   renderer.view.style.position = "absolute";
   if (window.innerWidth > window.innerHeight) {
@@ -36,9 +24,6 @@
   renderer.view.style.display = "block";
   renderer.view.style.left = Math.floor((window.innerWidth - parseInt(renderer.view.style.width, 10)) / 2) + "px";
   document.body.appendChild(renderer.view);
-
-  //Add stats counter
-  document.body.appendChild(stats.domElement);
 
   function StartScreen() {
     var zoomIn, titleText, instrText, startText, copyText;
@@ -591,6 +576,18 @@
         map.init(level);
       }
       break;
+    case 46:
+      //Key: Delete - Down
+      cheat = true;
+      break;
+    case 67:
+      //Key: C - Down
+      //This is a cheat mode / testing aid. Howd down delete and press C to skip to next level.
+      if (cheat === true && gameState === 1) {
+        level += 1;
+        map.init(level);
+      }
+      break;
     }
   }, false);
   window.addEventListener("keyup", function (event) {
@@ -615,6 +612,10 @@
       //Key: L - Down
       down = false;
       break;
+    case 46:
+      //Key:Delete - Up
+      cheat = true;
+      break;
     }
   }, false);
 
@@ -635,7 +636,6 @@
     //Calculate time since last frame
     timeElapsed = getTimeElapsed();
 
-    stats.begin();
     switch (gameState) {
     case 0: //Start Screen
       startScreen.animate(timeElapsed);
@@ -660,7 +660,6 @@
 
     // render the stage  
     renderer.render(stage);
-    stats.end();
 
   }
 
