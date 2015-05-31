@@ -308,9 +308,9 @@
       mapSprite[spriteIx].visible = false;
       if (keyCount === 0) {
         //All keys collected. Level Complete!
+        LevelCompleteText.scale.x = 1;
+        LevelCompleteText.scale.x = 1;
         gameState = 2;
-        LevelCompleteText.scale.x = 1;
-        LevelCompleteText.scale.x = 1;
         stage.addChild(LevelCompleteText);
       }
     };
@@ -330,6 +330,8 @@
       AllLevelsCompleteText.scale.y = AllLevelsCompleteText.scale.x;
       if (AllLevelsCompleteText.scale.x > 3) {
         gameState = 0;
+        AllLevelsCompleteText.scale.x = 1;
+        AllLevelsCompleteText.scale.y = 1;
         startScreen.init();
       }
     };
@@ -596,7 +598,9 @@
     timeNow = new Date().getTime();
     timeElapsed = timeNow - (timeLast || timeNow);
     timeLast = timeNow;
-    return timeElapsed;
+    //Don't allow too large an animation jump. Especially if the browder/tab loses focus
+    return (timeElapsed < 200 ? timeElapsed : 200);
+    //return timeElapsed;
   }
 
   //The Main Game Loop!
