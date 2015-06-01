@@ -6,15 +6,15 @@ module.exports = function(grunt) {
   	   	{
             expand: true,
             src: './images/*',
-            dest: './dist/'
+            dest: './gh-pages/'
          },
          {
          	src: './index.html',
-         	dest: './dist/index.html'         
+         	dest: './gh-pages/index.html'         
          },
          {
          	src: './js/pixi.min.js',
-         	dest: './dist//js/pixi.min.js'         
+         	dest: './gh-pages//js/pixi.min.js'         
          }
          ]
   	   }
@@ -28,10 +28,10 @@ module.exports = function(grunt) {
 			my_target: {
 				files: [
 				{
-					'dist/js/bloxed.js': ['js/bloxed.js']
+					'gh-pages/js/bloxed.js': ['js/bloxed.js']
 				},
 				{
-					'dist/js/levels.js': ['js/levels.js']
+					'gh-pages/js/levels.js': ['js/levels.js']
 				}
 				]
 			}
