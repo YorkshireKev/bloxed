@@ -10,7 +10,7 @@ module.exports = function(grunt) {
          },
          {
          	src: './index.html',
-         	dest: './gh-pages/index.html'         
+         	dest: './gh-pages/bloxed.html'         
          },
          {
          	src: './js/pixi.min.js',
