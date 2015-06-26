@@ -1,0 +1,13 @@
+On master branch ensure grunt and dependancies are installed and run grunt to create/update the gh-pages subdirectory. Then switch to the gh-pages branch and copy the contents of the gh-pages directory (including js and images folders) up one level (to the root of the gh-pages branch). Add, Commit and Push to github.
+
+In Steps:
+
+git checkout master
+npm install
+grunt
+git checkout gh-pages
+cd gh-pages
+cp -R * ..
+git add -A
+git commit -m 'update to latest build'
+git push
