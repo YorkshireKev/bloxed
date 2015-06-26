@@ -395,6 +395,8 @@ SOFTWARE.
 
     Player.prototype.initPlayer = function (x, y) {
       isMoving = false;
+      tileMoveX = 99;
+      tileMoveY = 99;
       direction = 2;
       playerSprite.gridX = x;
       playerSprite.gridY = y;
