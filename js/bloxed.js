@@ -639,7 +639,7 @@ SOFTWARE.
   }, false);
 
   function getTimeElapsed() {
-    var timeNow, timeElapsed, limeLast;
+    var timeNow, timeElapsed;
     timeNow = new Date().getTime();
     timeElapsed = timeNow - (timeLast || timeNow);
     timeLast = timeNow;
